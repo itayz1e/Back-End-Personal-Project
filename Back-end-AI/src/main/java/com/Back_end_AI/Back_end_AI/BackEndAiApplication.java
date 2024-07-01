@@ -10,4 +10,5 @@ public class BackEndAiApplication {
 		SpringApplication.run(BackEndAiApplication.class, args);
 	}
 
+
 }
