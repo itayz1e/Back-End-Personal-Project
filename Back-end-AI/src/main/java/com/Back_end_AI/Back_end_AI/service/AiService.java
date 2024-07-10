@@ -40,7 +40,7 @@ public class AiService {
         conn.setDoOutput(true);
 
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("model", "gpt-4");
+        jsonBody.put("model", "gpt-3.5-turbo");
         JSONArray messages = new JSONArray();
         JSONObject message = new JSONObject();
         message.put("role", "user");
