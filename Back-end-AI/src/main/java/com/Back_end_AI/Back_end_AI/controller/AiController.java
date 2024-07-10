@@ -1,31 +1,29 @@
 package com.Back_end_AI.Back_end_AI.controller;
 
+
 import com.Back_end_AI.Back_end_AI.service.AiService;
+import com.Back_end_AI.Back_end_AI.service.AppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/Ask")
 public class AiController {
-
     @Autowired
     private AiService aiService;
+    @Autowired
+    private AppUserService userService;
 
-    @GetMapping("/checkDatabaseConnection")
-    public ResponseEntity<String> checkDatabaseConnection(
-            @RequestParam String dbUrl,
-            @RequestParam String username,
-            @RequestParam String password) {
+    @GetMapping("/askChatGPT")
+    public ResponseEntity<?> executeQuery(@RequestParam String userInput) {
         try {
-            String chatGPTResponse = aiService.checkDatabaseConnection(dbUrl, username, password);
-            return new ResponseEntity<>(chatGPTResponse, HttpStatus.OK);
+            String sqlQuery = aiService.generateSQLQuery(userInput);
+            List<Object[]> results = userService.executeCustomQuery(sqlQuery);
+            return new ResponseEntity<>(results, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+                    }
+                }
 }
