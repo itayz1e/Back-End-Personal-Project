@@ -21,6 +21,8 @@ public class AiController {
         try {
             String sqlQuery = aiService.generateSQLQuery(userInput);
             List<Object[]> results = userService.executeCustomQuery(sqlQuery);
+            String response = results.toString();
+            aiService.saveCallHistory(userInput, response);
             return new ResponseEntity<>(results, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
