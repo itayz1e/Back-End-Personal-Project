@@ -1,9 +1,10 @@
 package com.Back_end_AI.Back_end_AI.service;
 
-
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -17,8 +18,13 @@ import java.net.URL;
 public class AiService {
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
+
     @Value("${openai.api.key}")
     private String openaiApiKey;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
 
     public String generateSQLQuery(String userInput) throws IOException {
         String prompt = "Generate a PostgreSQL query based on the following request: \"" + userInput + "\". " +
@@ -70,5 +76,10 @@ public class AiService {
             }
         }
         return "No content found in the response.";
-            }
+    }
+
+    public void saveCallHistory(String question, String response) {
+        String sql = "INSERT INTO call_history (question, response) VALUES (?, ?)";
+        jdbcTemplate.update(sql, question, response);
+    }
 }
