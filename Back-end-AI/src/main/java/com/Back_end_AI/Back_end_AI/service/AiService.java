@@ -28,7 +28,7 @@ public class AiService {
 
     public String generateSQLQuery(String userInput) throws IOException {
         String prompt = "Generate a PostgreSQL query based on the following request: \"" + userInput + "\". " +
-                "Use the tables: app_users, app_books, and app_users_books. " +
+                "Use the tables: app_users, app_books, call_history, and app_users_books. " +
                 "The app_users table has columns: user_id, username, password, email, full_name, date_of_birth, purchases. " +
                 "The app_books table has columns: book_id, title, author, published_year, genre, purchases. " +
                 "The app_users_books table has columns: id, user_id, book_id, purchase_date. " +
