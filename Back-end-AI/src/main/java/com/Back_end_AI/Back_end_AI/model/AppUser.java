@@ -1,50 +1,31 @@
 package com.Back_end_AI.Back_end_AI.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-import java.io.Serializable;
-import java.util.Date;
 
 @Entity
-@Table(name = "app_users")
-public class AppUser implements Serializable {
-    private static final long serialVersionUID = 1L;
+@Table(name = "app_user")
+public class AppUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "user_id")
-    private Long userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @NotNull
-    @Column(name = "username", nullable = false)
+    @Column(nullable = false, unique = true, length = 255)
     private String username;
 
-    @NotNull
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false, length = 255)
     private String password;
 
-    @NotNull
-    @Column(name = "email", nullable = false)
+    @Column(nullable = false, length = 255)
     private String email;
 
-    @Column(name = "full_name")
-    private String fullName;
-
-    @NotNull
-    @Column(name = "date_of_birth", nullable = false)
-    private Date dateOfBirth;
-
-    @Column(name = "purchases")
-    private Integer purchases = 0;
-
-    // Getters and setters
-
-    public Long getUserId() {
-        return userId;
+    // Getters and Setters
+    public Long getId() {
+        return id;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -69,29 +50,5 @@ public class AppUser implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public Date getDateOfBirth() {
-        return dateOfBirth;
-    }
-
-    public void setDateOfBirth(Date dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-
-    public Integer getPurchases() {
-        return purchases;
-    }
-
-    public void setPurchases(Integer purchases) {
-        this.purchases = purchases;
-    }
+                }
 }
