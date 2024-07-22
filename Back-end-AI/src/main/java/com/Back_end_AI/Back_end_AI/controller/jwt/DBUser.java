@@ -10,7 +10,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "app_user") // התאמנו את שם הטבלה
+@Table(name = "users") // התאמנו את שם הטבלה
 public class DBUser implements Serializable, Persistable<Long> {
 
     private static final long serialVersionUID = -5554304839188669754L;

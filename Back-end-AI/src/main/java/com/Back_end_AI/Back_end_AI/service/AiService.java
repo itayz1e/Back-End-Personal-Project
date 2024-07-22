@@ -5,26 +5,56 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.SQLException;
+
 
 @Service
 public class AiService {
-    private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
+    private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+
+    @Value("${spring.datasource.driver-class-name}")
+    private String dbDriverClassName;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    public String testDatabaseConnection() {
+        DataSource dataSource = new DriverManagerDataSource(dbUrl, dbUsername, dbPassword);
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection != null && !connection.isClosed()) {
+                return "Connection to the database is successful!";
+            } else {
+                return "Failed to connect to the database.";
+            }
+        } catch (SQLException e) {
+            // טיפול בשגיאות
+            return "Error connecting to the database: " + e.getMessage();
+        }
+    }
 
     public String generateSQLQuery(String userInput) throws IOException {
         String prompt = "Generate a PostgreSQL query based on the following request: \"" + userInput + "\". " +

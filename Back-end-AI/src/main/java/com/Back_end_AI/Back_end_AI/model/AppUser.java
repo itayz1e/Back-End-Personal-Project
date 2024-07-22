@@ -3,7 +3,7 @@ package com.Back_end_AI.Back_end_AI.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "users")
 public class AppUser {
 
     @Id
