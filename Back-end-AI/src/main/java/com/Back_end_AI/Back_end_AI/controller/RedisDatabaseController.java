@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
     @RequestMapping("/api")
@@ -32,26 +33,25 @@ import java.util.Map;
         return ResponseEntity.ok(dbParams);
     }
 
-    @RequestMapping(value = "connect-db", method = RequestMethod.POST) // השתמש ב-POST אם אתה שולח נתונים בגוף הבקשה
+    @RequestMapping(value = "connect-db", method = RequestMethod.POST)
     public Map<String, String> setKey(@RequestBody Map<String, String> dbParams) {
         String url = dbParams.get("url");
         String username = dbParams.get("username");
         String password = dbParams.get("password");
 
-        // שמירה של הפרמטרים ב-Redis כ-hash
         redisTemplate.opsForHash().put("db:params", "url", url);
         redisTemplate.opsForHash().put("db:params", "username", username);
         redisTemplate.opsForHash().put("db:params", "password", password);
 
-        // החזרת אישור שהנתונים נשמרו
+        String token = UUID.randomUUID().toString();
+
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
         response.put("message", "Database parameters saved successfully");
+        response.put("token", token);
 
         return response;
     }
-
-
 
     @RequestMapping(value = "getKey", method = RequestMethod.GET)
     public ResponseEntity<Map<Object, Object>> getKey(@RequestParam String hashKey) {
@@ -66,7 +66,5 @@ import java.util.Map;
                     .body(Collections.singletonMap("message", "Hash key not found"));
         }
     }
-
-
 
 }
