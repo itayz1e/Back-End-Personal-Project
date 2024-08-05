@@ -45,18 +45,33 @@ public class JwtAuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody JwtRequest userRequest) throws Exception {
+        // הדפסת נתונים לצורך בדיקה
+        System.out.println("Received request: " + userRequest);
+
         if (userService.findByUsername(userRequest.getUsername()) != null) {
             return ResponseEntity.status(409).body("User already exists");
         }
+
         String encodedPass = passwordEncoder.encode(userRequest.getPassword());
         AppUser user = new AppUser();
         user.setUsername(userRequest.getUsername());
         user.setPassword(encodedPass);
         user.setEmail(userRequest.getEmail());
+        user.setUrl(userRequest.getUrl());
+        user.setUsernameDB(userRequest.getUsernameDB());
+        user.setPasswordDB(userRequest.getPasswordDB());
+
+        // הדפסת הנתונים לפני שמירה
+        System.out.println("Saving user: " + user);
+
         userService.saveUser(user);
+
         UserDetails userDetails = new User(userRequest.getUsername(), encodedPass, new ArrayList<>());
         return ResponseEntity.ok(new JwtResponse(jwtTokenUtil.generateToken(userDetails)));
     }
+
+
+
 
 
     private void authenticate(String username, String password) throws Exception {
