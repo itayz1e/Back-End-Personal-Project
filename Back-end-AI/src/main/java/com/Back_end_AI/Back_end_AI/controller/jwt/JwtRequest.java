@@ -1,6 +1,5 @@
 package com.Back_end_AI.Back_end_AI.controller.jwt;
 
-
 import java.io.Serializable;
 
 public class JwtRequest implements Serializable {
@@ -9,17 +8,22 @@ public class JwtRequest implements Serializable {
 
     private String username;
     private String password;
-    private String email; // הוסף את שדה האימייל
+    private String email;
+    private String url; // הוסף את שדה ה-URL
+    private String usernameDB; // הוסף את שדה ה-usernameDB
+    private String passwordDB; // הוסף את שדה ה-passwordDB
 
-    //need default constructor for JSON Parsing
+    // Default constructor for JSON Parsing
     public JwtRequest() {
-
     }
 
-    public JwtRequest(String username, String password, String email) {
+    public JwtRequest(String username, String password, String email, String url, String usernameDB, String passwordDB) {
         this.setUsername(username);
         this.setPassword(password);
-        this.setEmail(email); // הוסף את שדה האימייל
+        this.setEmail(email);
+        this.setUrl(url);
+        this.setUsernameDB(usernameDB);
+        this.setPasswordDB(passwordDB);
     }
 
     public String getUsername() {
@@ -38,11 +42,35 @@ public class JwtRequest implements Serializable {
         this.password = password;
     }
 
-    public String getEmail() { // הוסף את שדה האימייל
+    public String getEmail() {
         return this.email;
     }
 
-    public void setEmail(String email) { // הוסף את שדה האימייל
+    public void setEmail(String email) {
         this.email = email;
-                }
+    }
+
+    public String getUrl() { // הוסף את getter ל-URL
+        return this.url;
+    }
+
+    public void setUrl(String url) { // הוסף את setter ל-URL
+        this.url = url;
+    }
+
+    public String getUsernameDB() { // הוסף את getter ל-usernameDB
+        return this.usernameDB;
+    }
+
+    public void setUsernameDB(String usernameDB) { // הוסף את setter ל-usernameDB
+        this.usernameDB = usernameDB;
+    }
+
+    public String getPasswordDB() { // הוסף את getter ל-passwordDB
+        return this.passwordDB;
+    }
+
+    public void setPasswordDB(String passwordDB) { // הוסף את setter ל-passwordDB
+        this.passwordDB = passwordDB;
+    }
 }
