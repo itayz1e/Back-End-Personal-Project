@@ -57,9 +57,6 @@ public class JwtAuthenticationController {
         user.setUsername(userRequest.getUsername());
         user.setPassword(encodedPass);
         user.setEmail(userRequest.getEmail());
-        user.setUrl(userRequest.getUrl());
-        user.setUsernameDB(userRequest.getUsernameDB());
-        user.setPasswordDB(userRequest.getPasswordDB());
 
         // הדפסת הנתונים לפני שמירה
         System.out.println("Saving user: " + user);

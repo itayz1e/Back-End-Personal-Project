@@ -27,15 +27,6 @@ public class DBUser implements Serializable, Persistable<Long> {
     @Column(nullable = false, length = 255)
     private String email;
 
-    @Column(length = 255)
-    private String url; // הוספת עמודה חדשה
-
-    @Column(length = 255)
-    private String usernameDB; // הוספת עמודה חדשה
-
-    @Column(length = 255)
-    private String passwordDB; // הוספת עמודה חדשה
-
     protected DBUser() {}
 
     @Transient
@@ -81,39 +72,12 @@ public class DBUser implements Serializable, Persistable<Long> {
         this.email = email;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getUsernameDB() {
-        return usernameDB;
-    }
-
-    public void setUsernameDB(String usernameDB) {
-        this.usernameDB = usernameDB;
-    }
-
-    public String getPasswordDB() {
-        return passwordDB;
-    }
-
-    public void setPasswordDB(String passwordDB) {
-        this.passwordDB = passwordDB;
-    }
-
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", getId())
                 .add("username", username)
                 .add("email", email)
-                .add("url", url) // הוספת פרמטרים חדשים להדפסה
-                .add("usernameDB", usernameDB)
-                .add("passwordDB", passwordDB)
                 .toString();
     }
 
@@ -122,9 +86,6 @@ public class DBUser implements Serializable, Persistable<Long> {
         private String username;
         private String password;
         private String email;
-        private String url;
-        private String usernameDB;
-        private String passwordDB;
 
         private UserBuilder() {}
 
@@ -147,21 +108,6 @@ public class DBUser implements Serializable, Persistable<Long> {
             return this;
         }
 
-        public UserBuilder url(String url) {
-            this.url = url;
-            return this;
-        }
-
-        public UserBuilder usernameDB(String usernameDB) {
-            this.usernameDB = usernameDB;
-            return this;
-        }
-
-        public UserBuilder passwordDB(String passwordDB) {
-            this.passwordDB = passwordDB;
-            return this;
-        }
-
         public UserBuilder id(Long id) {
             this.id = id;
             return this;
@@ -172,9 +118,6 @@ public class DBUser implements Serializable, Persistable<Long> {
             user.setUsername(username);
             user.setPassword(password);
             user.setEmail(email);
-            user.setUrl(url);
-            user.setUsernameDB(usernameDB);
-            user.setPasswordDB(passwordDB);
             user.setId(id);
             return user;
         }

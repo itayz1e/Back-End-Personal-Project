@@ -3,6 +3,8 @@ package com.Back_end_AI.Back_end_AI.controller;
 import com.Back_end_AI.Back_end_AI.model.DatabaseParams;
 import com.Back_end_AI.Back_end_AI.service.DatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,8 +15,14 @@ public class DatabaseController {
     private DatabaseService databaseService;
 
     @PostMapping
-    public Object connectDatabase(@RequestBody DatabaseParams databaseParams) {
-        return databaseService.getDatabaseSchema(databaseParams);
+    public ResponseEntity<Object> connectDatabase(@RequestBody DatabaseParams databaseParams) {
+        try {
+            Object result = databaseService.getDatabaseSchema(databaseParams);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            // Log the exception if needed
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving database schema: " + e.getMessage());
+        }
     }
 }
-
