@@ -24,6 +24,9 @@ public class DatabaseService {
             // Recreate the schema_info table
             recreateSchemaInfoTable();
 
+            // Clear existing schema information
+            clearSchemaInfoTable();
+
             // Retrieve the schema information
             String query = "SELECT table_schema, table_name, column_name, data_type " +
                     "FROM information_schema.columns " +
@@ -54,7 +57,7 @@ public class DatabaseService {
             logger.error("Error retrieving or saving database schema", e);
             result.put("error", "Error retrieving or saving database schema: " + e.getMessage());
         }
-
+        System.out.println("result" + result);
         return result;
     }
 
@@ -65,13 +68,23 @@ public class DatabaseService {
                 "table_name VARCHAR(255), " +
                 "column_name VARCHAR(255), " +
                 "data_type VARCHAR(255), " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "UNIQUE (table_schema, table_name, column_name))"; // Add unique constraint to avoid duplicates
         jdbcTemplate.execute(createTableSQL);
         logger.info("schema_info table recreated successfully");
     }
 
+    private void clearSchemaInfoTable() {
+        String deleteSQL = "DELETE FROM schema_info";
+        jdbcTemplate.update(deleteSQL);
+        logger.info("Cleared schema_info table");
+    }
+
     private void insertSchemaInfo(String tableSchema, String tableName, String columnName, String dataType) {
-        String insertSQL = "INSERT INTO schema_info (table_schema, table_name, column_name, data_type) VALUES (?, ?, ?, ?)";
+        String insertSQL = "INSERT INTO schema_info (table_schema, table_name, column_name, data_type) " +
+                "VALUES (?, ?, ?, ?) " +
+                "ON CONFLICT (table_schema, table_name, column_name) " +
+                "DO NOTHING"; // Prevent duplicate entries
         jdbcTemplate.update(insertSQL, tableSchema, tableName, columnName, dataType);
         logger.info("Inserted schema info");
     }

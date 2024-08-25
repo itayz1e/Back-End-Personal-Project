@@ -18,7 +18,7 @@ public class DatabaseController {
     public ResponseEntity<Object> connectDatabase(@RequestBody DatabaseParams databaseParams) {
         try {
             Object result = databaseService.getDatabaseSchema(databaseParams);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok("Connecting to the database was successful!");
         } catch (Exception e) {
             // Log the exception if needed
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
