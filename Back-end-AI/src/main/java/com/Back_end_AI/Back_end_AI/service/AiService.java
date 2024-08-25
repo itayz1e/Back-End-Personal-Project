@@ -57,12 +57,9 @@ public class AiService {
     }
 
     public String generateSQLQuery(String userInput) throws IOException {
-        String prompt = "Please generate a PostgreSQL SQL query based on the following request: \"" + userInput + "\". " +
-                "use the table `schema_info` . " +
-                "Return only the SQL query." +
-                "Return only answer in English" +
-                "Ensure the query is syntactically correct and optimized.";
-
+        String prompt = "I am about to ask you a question." + "Please generate a PostgreSQL SQL query based on the data structure provided in the schema_info table." +
+                "Your SQL query should target the relevant table that matches the question. The question will be provided in \"" + userInput + "\" " +
+                "Return only the SQL query.";
         return sendToChatGPT(prompt);
     }
 
