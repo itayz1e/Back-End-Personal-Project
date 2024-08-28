@@ -1,16 +1,18 @@
 package com.Back_end_AI.Back_end_AI.model;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+@ApiModel(description = "Parameters required to connect to a database")
 public class DatabaseParams {
 
-    @ApiModelProperty(value = "JDBC URL of the database", example = "jdbc:postgresql://localhost:5432/postgres")
+    @ApiModelProperty(value = "JDBC URL of the database", example = "jdbc:postgresql://localhost:5432/postgres", required = true)
     private String url;
 
-    @ApiModelProperty(value = "Username for database connection", example = "postgres")
+    @ApiModelProperty(value = "Username for database connection", example = "postgres", required = true)
     private String username;
 
-    @ApiModelProperty(value = "Password for database connection", example = "password123")
+    @ApiModelProperty(value = "Password for database connection", example = "password123", required = true)
     private String password;
 
     // Getter for url
@@ -41,5 +43,13 @@ public class DatabaseParams {
     // Setter for password
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "DatabaseParams{" +
+                "url='" + url + '\'' +
+                ", username='" + username + '\'' +
+                ", password='******'}"; // Do not show password in toString()
     }
 }

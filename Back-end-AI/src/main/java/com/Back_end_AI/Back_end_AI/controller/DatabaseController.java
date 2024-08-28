@@ -17,10 +17,14 @@ public class DatabaseController {
     @PostMapping
     public ResponseEntity<Object> connectDatabase(@RequestBody DatabaseParams databaseParams) {
         try {
+            // שמירת פרטי החיבור ב-Redis
+            databaseService.saveDatabaseParamsToRedis(databaseParams);
+
+            // משיכת סכימת הנתונים ושמירתם ב-Redis
             Object result = databaseService.getDatabaseSchema(databaseParams);
+
             return ResponseEntity.ok("Connecting to the database was successful!");
         } catch (Exception e) {
-            // Log the exception if needed
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error retrieving database schema: " + e.getMessage());
         }

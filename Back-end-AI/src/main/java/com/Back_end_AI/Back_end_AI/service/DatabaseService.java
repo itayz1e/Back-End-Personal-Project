@@ -2,6 +2,7 @@ package com.Back_end_AI.Back_end_AI.service;
 
 import com.Back_end_AI.Back_end_AI.model.DatabaseParams;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -14,20 +15,19 @@ public class DatabaseService {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseService.class);
 
     @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    private static final String SCHEMA_INFO_KEY = "schema_info";
 
     public Map<String, Object> getDatabaseSchema(DatabaseParams params) {
         Map<String, Object> result = new HashMap<>();
         List<Map<String, String>> columns = new ArrayList<>();
 
         try {
-            // Recreate the schema_info table
-            recreateSchemaInfoTable();
-
-            // Clear existing schema information
-            clearSchemaInfoTable();
-
-            // Retrieve the schema information
+            // שליפת מבנה הנתונים מה-DB ושמירה ל-Redis
             String query = "SELECT table_schema, table_name, column_name, data_type " +
                     "FROM information_schema.columns " +
                     "WHERE table_schema NOT IN ('pg_catalog', 'information_schema')";
@@ -47,9 +47,11 @@ public class DatabaseService {
                 column.put("data_type", dataType);
                 columns.add(column);
 
-                logger.info("Inserting schema info: {}.{}.{} ({})", tableSchema, tableName, columnName, dataType);
-                insertSchemaInfo(tableSchema, tableName, columnName, dataType);
+                logger.info("Adding schema info: {}.{}.{} ({}) to Redis", tableSchema, tableName, columnName, dataType);
             }
+
+            // שמירת מבנה הנתונים כולו ב-Redis
+            redisTemplate.opsForValue().set(SCHEMA_INFO_KEY, columns);
             result.put("columns", columns);
             logger.info("Schema retrieval complete. Total columns: {}", columns.size());
 
@@ -57,35 +59,22 @@ public class DatabaseService {
             logger.error("Error retrieving or saving database schema", e);
             result.put("error", "Error retrieving or saving database schema: " + e.getMessage());
         }
-        System.out.println("result" + result);
+
         return result;
     }
 
-    private void recreateSchemaInfoTable() {
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS schema_info (" +
-                "id SERIAL PRIMARY KEY, " +
-                "table_schema VARCHAR(255), " +
-                "table_name VARCHAR(255), " +
-                "column_name VARCHAR(255), " +
-                "data_type VARCHAR(255), " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "UNIQUE (table_schema, table_name, column_name))"; // Add unique constraint to avoid duplicates
-        jdbcTemplate.execute(createTableSQL);
-        logger.info("schema_info table recreated successfully");
+    public DatabaseParams getDatabaseParamsFromRedis(String key) {
+        return (DatabaseParams) redisTemplate.opsForValue().get(key);
     }
 
-    private void clearSchemaInfoTable() {
-        String deleteSQL = "DELETE FROM schema_info";
-        jdbcTemplate.update(deleteSQL);
-        logger.info("Cleared schema_info table");
-    }
-
-    private void insertSchemaInfo(String tableSchema, String tableName, String columnName, String dataType) {
-        String insertSQL = "INSERT INTO schema_info (table_schema, table_name, column_name, data_type) " +
-                "VALUES (?, ?, ?, ?) " +
-                "ON CONFLICT (table_schema, table_name, column_name) " +
-                "DO NOTHING"; // Prevent duplicate entries
-        jdbcTemplate.update(insertSQL, tableSchema, tableName, columnName, dataType);
-        logger.info("Inserted schema info");
+    public void saveDatabaseParamsToRedis(DatabaseParams params) {
+        try {
+            String redisKey = "db_params";
+            redisTemplate.opsForValue().set(redisKey, params);
+            logger.info("Database parameters saved to Redis");
+        } catch (Exception e) {
+            logger.error("Error saving database parameters to Redis", e);
+            throw e; // throwing exception to be handled by the controller
+        }
     }
 }
