@@ -28,11 +28,34 @@ public class AiController {
             // שמירה של השאלה והשאילתא שנוצרה
             aiService.saveCallHistory(userInput, sqlQuery);
 
-            // החזרת השאילתא שנוצרה
-            return new ResponseEntity<>(sqlQuery, HttpStatus.OK);
+            // ביצוע השאילתא לקבלת התוצאות
+            String result = aiService.executeSQLQuery(sqlQuery);
+
+            // החזרת התוצאות של השאילתא
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             // טיפול בשגיאות
-            return new ResponseEntity<>(gson.toJson("Error: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            String errorResponse = gson.toJson(new ErrorResponse("Error", e.getMessage()));
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // מחלקת שגיאות למענה אחיד
+    private static class ErrorResponse {
+        private String status;
+        private String message;
+
+        public ErrorResponse(String status, String message) {
+            this.status = status;
+            this.message = message;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getMessage() {
+            return message;
         }
     }
 }

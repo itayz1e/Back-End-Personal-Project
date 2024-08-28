@@ -14,6 +14,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -101,6 +106,38 @@ public class AiService {
         }
         return "No content found in the response.";
     }
+
+    public String executeSQLQuery(String sqlQuery) throws IOException, SQLException {
+        // קבלת פרטי החיבור מ-Redis
+        Map<String, String> dbParams = (Map<String, String>) redisTemplate.opsForValue().get("db_params");
+        if (dbParams == null) {
+            throw new IllegalStateException("Database connection parameters not found in Redis.");
+        }
+
+        String dbUrl = dbParams.get("url");
+        String dbUsername = dbParams.get("username");
+        String dbPassword = dbParams.get("password");
+
+        try (Connection connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            // עיבוד התוצאה
+            StringBuilder result = new StringBuilder();
+            int columnCount = resultSet.getMetaData().getColumnCount();
+            while (resultSet.next()) {
+                for (int i = 1; i <= columnCount; i++) {
+                    result.append(resultSet.getString(i)).append("\t");
+                }
+                result.append("\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("SQL error: " + e.getMessage());
+        }
+    }
+
 
     public void saveCallHistory(String question, String response) {
         String sql = "INSERT INTO call_history (question, response) VALUES (?, ?)";
