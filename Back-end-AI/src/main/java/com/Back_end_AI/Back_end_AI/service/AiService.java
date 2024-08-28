@@ -4,66 +4,63 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
-
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class AiService {
 
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String SCHEMA_INFO_KEY = "schema_info";
 
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
-    @Value("${spring.datasource.url}")
-    private String dbUrl;
-
-    @Value("${spring.datasource.username}")
-    private String dbUsername;
-
-    @Value("${spring.datasource.password}")
-    private String dbPassword;
-
-    @Value("${spring.datasource.driver-class-name}")
-    private String dbDriverClassName;
-
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public String testDatabaseConnection() {
-        DataSource dataSource = new DriverManagerDataSource(dbUrl, dbUsername, dbPassword);
-        try (Connection connection = dataSource.getConnection()) {
-            if (connection != null && !connection.isClosed()) {
-                return "Connection to the database is successful!";
-            } else {
-                return "Failed to connect to the database.";
-            }
-        } catch (SQLException e) {
-            // טיפול בשגיאות
-            return "Error connecting to the database: " + e.getMessage();
-        }
-    }
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     public String generateSQLQuery(String userInput) throws IOException {
-        String prompt = "I am about to ask you a question." + "Please generate a PostgreSQL SQL query based on the data structure provided in the schema_info table." +
-                "Your SQL query should target the relevant table that matches the question. The question will be provided in \"" + userInput + "\" " +
-                "Return only the SQL query.";
+        // קריאה ל-Redis לקבלת מבנה הנתונים
+        List<Map<String, String>> schemaInfo = (List<Map<String, String>>) redisTemplate.opsForValue().get(SCHEMA_INFO_KEY);
+
+        if (schemaInfo == null) {
+            throw new IllegalStateException("Schema information not found in Redis.");
+        }
+
+        // בניית הפנייה ל-ChatGPT
+        String prompt = buildPrompt(schemaInfo, userInput);
         return sendToChatGPT(prompt);
     }
 
-    public String sendToChatGPT(String prompt) throws IOException {
+    private String buildPrompt(List<Map<String, String>> schemaInfo, String userInput) {
+        // יצירת מחרוזת JSON של מבנה הנתונים
+        JSONArray schemaArray = new JSONArray();
+        for (Map<String, String> column : schemaInfo) {
+            JSONObject columnObj = new JSONObject(column);
+            schemaArray.put(columnObj);
+        }
+
+        // בניית ההנחיה ל-ChatGPT
+        return "I have a question to ask you. Based on the following database schema, generate a PostgreSQL SQL query that answers the question. "
+                + "The schema information is as follows: " + schemaArray.toString() + " "
+                + "The question is: \"" + userInput + "\" "
+                + "Return only the SQL query.";
+    }
+
+    private String sendToChatGPT(String prompt) throws IOException {
         URL url = new URL(API_URL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -80,17 +77,18 @@ public class AiService {
         messages.put(message);
         jsonBody.put("messages", messages);
 
-        OutputStream os = conn.getOutputStream();
-        byte[] input = jsonBody.toString().getBytes("utf-8");
-        os.write(input, 0, input.length);
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
-        StringBuilder response = new StringBuilder();
-        String responseLine;
-        while ((responseLine = in.readLine()) != null) {
-            response.append(responseLine.trim());
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = jsonBody.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
         }
-        in.close();
+
+        StringBuilder response = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+            String responseLine;
+            while ((responseLine = in.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+        }
         conn.disconnect();
 
         JSONObject responseObject = new JSONObject(response.toString());
