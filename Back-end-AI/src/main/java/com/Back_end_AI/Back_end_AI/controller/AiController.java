@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 @RestController
 @RequestMapping("/Ask")
 public class AiController {
@@ -22,20 +25,26 @@ public class AiController {
     @GetMapping("/askChatGPT")
     public ResponseEntity<String> executeQuery(@RequestParam String userInput) {
         try {
-            // יצירת השאילתא באמצעות ChatGPT
             String sqlQuery = aiService.generateSQLQuery(userInput);
-
-            // שמירה של השאלה והשאילתא שנוצרה
             aiService.saveCallHistory(userInput, sqlQuery);
-
-            // ביצוע השאילתא לקבלת התוצאות
             String result = aiService.executeSQLQuery(sqlQuery);
 
-            // החזרת התוצאות של השאילתא
             return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (IllegalStateException e) {
+
+            String errorResponse = gson.toJson(new ErrorResponse("Data Error", e.getMessage()));
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        } catch (IOException e) {
+
+            String errorResponse = gson.toJson(new ErrorResponse("IO Error", e.getMessage()));
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SQLException e) {
+
+            String errorResponse = gson.toJson(new ErrorResponse("SQL Error", e.getMessage()));
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            // טיפול בשגיאות
-            String errorResponse = gson.toJson(new ErrorResponse("Error", e.getMessage()));
+
+            String errorResponse = gson.toJson(new ErrorResponse("Unknown Error", e.getMessage()));
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -43,7 +52,7 @@ public class AiController {
     // מחלקת שגיאות למענה אחיד
     private static class ErrorResponse {
         private String status;
-        private String message;
+        private String message = "גשדגשדגשדג";
 
         public ErrorResponse(String status, String message) {
             this.status = status;
