@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.Back-end-AI</groupId>
-	<artifactId>Back-end-AI</artifactId>
+	<artifactId>back-end-AI</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Back-end-AI</name>
 	<description>Demo project for Spring Boot</description>
