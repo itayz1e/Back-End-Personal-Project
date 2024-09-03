@@ -4,10 +4,12 @@ import com.Back_end_AI.Back_end_AI.model.DatabaseParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.util.*;
 
 @Service
@@ -17,9 +19,6 @@ public class DatabaseService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
     private static final String SCHEMA_INFO_KEY = "schema_info";
 
     public Map<String, Object> getDatabaseSchema(DatabaseParams params) {
@@ -27,7 +26,11 @@ public class DatabaseService {
         List<Map<String, String>> columns = new ArrayList<>();
 
         try {
-            // שליפת מבנה הנתונים מה-DB ושמירה ל-Redis
+            // יצירת DataSource עם פרטי החיבור שהתקבלו מצד הלקוח
+            DataSource dataSource = createDataSource(params);
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
+            // Fetch schema information from the DB
             String query = "SELECT table_schema, table_name, column_name, data_type " +
                     "FROM information_schema.columns " +
                     "WHERE table_schema NOT IN ('pg_catalog', 'information_schema')";
@@ -50,8 +53,10 @@ public class DatabaseService {
                 logger.info("Adding schema info: {}.{}.{} ({}) to Redis", tableSchema, tableName, columnName, dataType);
             }
 
-            // שמירת מבנה הנתונים כולו ב-Redis
+            // עדכון schema_info ב-Redis
             redisTemplate.opsForValue().set(SCHEMA_INFO_KEY, columns);
+            logger.info("Schema information updated in Redis");
+
             result.put("columns", columns);
             logger.info("Schema retrieval complete. Total columns: {}", columns.size());
 
@@ -74,7 +79,17 @@ public class DatabaseService {
             logger.info("Database parameters saved to Redis");
         } catch (Exception e) {
             logger.error("Error saving database parameters to Redis", e);
-            throw e; // throwing exception to be handled by the controller
+            throw e; // Propagate exception to be handled by the controller
         }
+    }
+
+    // פונקציה ליצירת DataSource עם פרטי החיבור שהמשתמש סיפק
+    private DataSource createDataSource(DatabaseParams params) {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        dataSource.setUrl(params.getUrl());
+        dataSource.setUsername(params.getUsername());
+        dataSource.setPassword(params.getPassword());
+        return dataSource;
     }
 }
