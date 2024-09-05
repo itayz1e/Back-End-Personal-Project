@@ -53,7 +53,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
 
 
-        httpSecurity.csrf().disable().authorizeRequests().antMatchers("/authenticate", "/user", "/actuator/**", "/api/login", "/api/register",
+        httpSecurity.csrf().disable().authorizeRequests().antMatchers("/","/assets/**","/index.html","/authenticate", "/user", "/actuator/**", "/api/login", "/api/register",
                 "/swagger-ui.html",
                 "/api/swagger-ui.html",
                 "/v2/api-docs",
